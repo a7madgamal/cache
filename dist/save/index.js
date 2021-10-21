@@ -47150,6 +47150,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+/* eslint-disable @typescript-eslint/ban-ts-ignore */
 const cache = __importStar(__webpack_require__(692));
 const core = __importStar(__webpack_require__(470));
 const constants_1 = __webpack_require__(196);
@@ -47170,19 +47171,23 @@ function run() {
                 return;
             }
             const state = utils.getCacheState();
+            core.info(`state: ${state}`);
             // Inputs are re-evaluted before the post action, so we want the original key used for restore
             const primaryKey = core.getState(constants_1.State.CachePrimaryKey);
             if (!primaryKey) {
                 utils.logWarning(`Error retrieving key from state.`);
                 return;
             }
-            if (utils.isExactKeyMatch(primaryKey, state)) {
-                core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
-                return;
-            }
+            // if (utils.isExactKeyMatch(primaryKey, state)) {
+            //     core.info(
+            //         `Cache hit occurred on the primary key ${primaryKey}, not saving cache.`
+            //     );
+            //     return;
+            // }
             const cachePaths = utils.getInputAsArray(constants_1.Inputs.Path, {
                 required: true
             });
+            core.info(`${cachePaths}`);
             try {
                 yield cache.saveCache(cachePaths, primaryKey, {
                     uploadChunkSize: utils.getInputAsInt(constants_1.Inputs.UploadChunkSize)
@@ -47190,18 +47195,25 @@ function run() {
                 core.info(`Cache saved with key: ${primaryKey}`);
             }
             catch (error) {
+                // @ts-ignore
+                core.logWarning({ error });
+                // @ts-ignore
                 if (error.name === cache.ValidationError.name) {
                     throw error;
+                    // @ts-ignore
                 }
                 else if (error.name === cache.ReserveCacheError.name) {
+                    // @ts-ignore
                     core.info(error.message);
                 }
                 else {
+                    // @ts-ignore
                     utils.logWarning(error.message);
                 }
             }
         }
         catch (error) {
+            // @ts-ignore
             utils.logWarning(error.message);
         }
     });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-ignore */
 import * as cache from "@actions/cache";
 import * as core from "@actions/core";
 
@@ -7,67 +8,72 @@ import * as utils from "./utils/actionUtils";
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
 // @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
 // throw an uncaught exception.  Instead of failing this action, just warn.
-process.on("uncaughtException", (e) => utils.logWarning(e.message));
+process.on("uncaughtException", e => utils.logWarning(e.message));
 
 async function run(): Promise<void> {
-  try {
-    if (utils.isGhes()) {
-      utils.logWarning(
-        "Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details"
-      );
-      return;
-    }
-
-    if (!utils.isValidEvent()) {
-      utils.logWarning(
-        `Event Validation Error: The event type ${
-          process.env[Events.Key]
-        } is not supported because it's not tied to a branch or tag ref.`
-      );
-      return;
-    }
-
-    const state = utils.getCacheState();
-    core.info({ state });
-
-    // Inputs are re-evaluted before the post action, so we want the original key used for restore
-    const primaryKey = core.getState(State.CachePrimaryKey);
-    if (!primaryKey) {
-      utils.logWarning(`Error retrieving key from state.`);
-      return;
-    }
-
-    // if (utils.isExactKeyMatch(primaryKey, state)) {
-    //     core.info(
-    //         `Cache hit occurred on the primary key ${primaryKey}, not saving cache.`
-    //     );
-    //     return;
-    // }
-
-    const cachePaths = utils.getInputAsArray(Inputs.Path, {
-      required: true,
-    });
-    core.info({ cachePaths });
-
     try {
-      await cache.saveCache(cachePaths, primaryKey, {
-        uploadChunkSize: utils.getInputAsInt(Inputs.UploadChunkSize),
-      });
-      core.info(`Cache saved with key: ${primaryKey}`);
-    } catch (error) {
-      core.logWarning({ error });
+        if (utils.isGhes()) {
+            utils.logWarning(
+                "Cache action is not supported on GHES. See https://github.com/actions/cache/issues/505 for more details"
+            );
+            return;
+        }
 
-      if (error.name === cache.ValidationError.name) {
-        throw error;
-      } else if (error.name === cache.ReserveCacheError.name) {
-        core.info(error.message);
-      } else {
+        if (!utils.isValidEvent()) {
+            utils.logWarning(
+                `Event Validation Error: The event type ${
+                    process.env[Events.Key]
+                } is not supported because it's not tied to a branch or tag ref.`
+            );
+            return;
+        }
+
+        const state = utils.getCacheState();
+        core.info(`state: ${state}`);
+
+        // Inputs are re-evaluted before the post action, so we want the original key used for restore
+        const primaryKey = core.getState(State.CachePrimaryKey);
+        if (!primaryKey) {
+            utils.logWarning(`Error retrieving key from state.`);
+            return;
+        }
+
+        // if (utils.isExactKeyMatch(primaryKey, state)) {
+        //     core.info(
+        //         `Cache hit occurred on the primary key ${primaryKey}, not saving cache.`
+        //     );
+        //     return;
+        // }
+
+        const cachePaths = utils.getInputAsArray(Inputs.Path, {
+            required: true
+        });
+        core.info(`${cachePaths}`);
+
+        try {
+            await cache.saveCache(cachePaths, primaryKey, {
+                uploadChunkSize: utils.getInputAsInt(Inputs.UploadChunkSize)
+            });
+            core.info(`Cache saved with key: ${primaryKey}`);
+        } catch (error) {
+            // @ts-ignore
+            core.logWarning({ error });
+            // @ts-ignore
+            if (error.name === cache.ValidationError.name) {
+                throw error;
+                // @ts-ignore
+            } else if (error.name === cache.ReserveCacheError.name) {
+                // @ts-ignore
+                core.info(error.message);
+            } else {
+                // @ts-ignore
+                utils.logWarning(error.message);
+            }
+        }
+    } catch (error) {
+        // @ts-ignore
         utils.logWarning(error.message);
-      }
     }
-  } catch (error) {
-    utils.logWarning(error.message);
-  }
 }
 
 run();
