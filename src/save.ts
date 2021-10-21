@@ -50,29 +50,12 @@ async function run(): Promise<void> {
         });
         core.info(`${cachePaths}`);
 
-        try {
-            await cache.saveCache(cachePaths, primaryKey, {
-                uploadChunkSize: utils.getInputAsInt(Inputs.UploadChunkSize)
-            });
-            core.info(`Cache saved with key: ${primaryKey}`);
-        } catch (error) {
-            // @ts-ignore
-            core.logWarning({ error });
-            // @ts-ignore
-            if (error.name === cache.ValidationError.name) {
-                throw error;
-                // @ts-ignore
-            } else if (error.name === cache.ReserveCacheError.name) {
-                // @ts-ignore
-                core.info(error.message);
-            } else {
-                // @ts-ignore
-                utils.logWarning(error.message);
-            }
-        }
+        await cache.saveCache(cachePaths, primaryKey, {
+            uploadChunkSize: utils.getInputAsInt(Inputs.UploadChunkSize)
+        });
+        core.info(`Cache saved with key: ${primaryKey}`);
     } catch (error) {
-        // @ts-ignore
-        utils.logWarning(error.message);
+        console.log({ error });
     }
 }
 
